@@ -1,1 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chop Shop — Braves Fan Tickets</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #13274F;
+    --red: #CE1141;
+    --gold: #EAAA00;
+    --bg: #f7f8fa;
+    --white: #fff;
+    --border: #e4e9f0;
+    --text: #1a1a2e;
+    --muted: #7a8499;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
+  /* HERO */
+  .hero {
+    background: linear-gradient(160deg, #0a1628 0%, #13274F 60%, #1c3460 100%);
+    padding: 48px 24px 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(206,17,65,0.12) 0%, transparent 70%);
+  }
+  .hero-logo { font-size: 52px; margin-bottom: 10px; cursor: default; user-select: none; position: relative; }
+  .hero h1 { font-family: 'Playfair Display', serif; color: #fff; font-size: 32px; margin-bottom: 6px; position: relative; }
+  .hero p { color: #8faab8; font-size: 15px; margin-bottom: 20px; position: relative; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(206,17,65,0.15); border: 1px solid rgba(206,17,65,0.35);
+    border-radius: 24px; padding: 8px 20px; position: relative;
+  }
+  .hero-badge span { color: #e0c0c8; font-size: 14px; }
+
+  /* NAV */
+  .nav {
+    background: var(--white); border-bottom: 2px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .nav-inner { max-width: 860px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; }
+  .nav-tab { padding: 14px 16px; font-size: 14px; font-weight: 600; color: var(--navy); border-bottom: 2px solid var(--red); margin-bottom: -2px; }
+  .nav-link { padding: 14px 16px; font-size: 14px; color: var(--muted); text-decoration: none; }
+  .nav-link:hover { color: var(--navy); }
+
+  /* CONTENT */
+  .content { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* MONTH */
+  .month-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; color: var(--navy);
+    padding-bottom: 10px; border-bottom: 2px solid var(--border);
+    margin: 0 0 4px;
+  }
+  .month-block { margin-bottom: 40px; }
+
+  /* GAME ROW */
+  .game-row {
+    border-bottom: 1px solid var(--border);
+    background: var(--white);
+    transition: background 0.15s;
+  }
+  .game-header {
+    display: flex; align-items: center; padding: 16px 0;
+    cursor: pointer; gap: 16px; user-select: none;
+  }
+  .game-header:hover { background: #f0f4fa; }
+  .game-date { min-width: 78px; }
+  .game-date .d1 { font-weight: 700; font-size: 15px; color: var(--navy); }
+  .game-date .d2 { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .game-info { flex: 1; }
+  .game-info .g1 { font-weight: 600; font-size: 14px; color: #111; }
+  .game-info .g2 { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .game-promo { display: inline-block; font-size: 11px; color: var(--navy); background: #edf1f9; border-radius: 20px; padding: 2px 10px; margin-top: 4px; }
+  .game-price { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .price-badge { background: var(--navy); color: #fff; border-radius: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+  .no-listing { background: #f0f0f0; color: #bbb; border-radius: 6px; padding: 6px 14px; font-size: 12px; }
+  .chevron { color: #bbb; font-size: 14px; transition: transform 0.2s; }
+  .chevron.open { transform: rotate(180deg); }
+
+  /* EXPANDED */
+  .game-expanded { background: #f7f9fc; border-top: 1px solid var(--border); padding: 14px 0 18px; }
+  .expanded-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .listing-count { font-size: 13px; color: #666; }
+  .btn-sell {
+    background: var(--navy); color: #fff; border: none; border-radius: 6px;
+    padding: 7px 16px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; font-weight: 500;
+  }
+  .btn-sell:hover { background: #0d1f3c; }
+  .no-listings { color: #bbb; font-size: 13px; }
+  .listing-card {
+    background: #fff; border-radius: 8px; padding: 11px 14px;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 12px;
+    border: 1px solid var(--border);
+  }
+  .listing-card.verified { border-color: var(--gold); }
+  .listing-info { flex: 1; font-size: 13px; color: #333; }
+  .listing-price { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--navy); }
+  .btn-contact {
+    background: var(--red); color: #fff; border: none; border-radius: 6px;
+    padding: 8px 16px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; white-space: nowrap;
+  }
+  .btn-contact:hover { background: #a80d33; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-box {
+    background: #fff; border-radius: 14px; padding: 28px;
+    width: 100%; max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 12px; right: 14px; background: none; border: none;
+    font-size: 20px; cursor: pointer; color: #aaa; line-height: 1;
+  }
+  .modal-close:hover { color: #555; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--navy); margin-bottom: 4px; }
+  .modal-sub { font-size: 13px; color: var(--red); margin-bottom: 18px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .form-full { grid-column: 1 / -1; }
+  .field-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .field-input {
+    border: 1px solid #ddd; border-radius: 6px; padding: 9px 11px;
+    font-size: 13px; width: 100%; font-family: 'DM Sans', sans-serif;
+    outline: none; transition: border-color 0.15s;
+  }
+  .field-input:focus { border-color: var(--navy); }
+  .field-textarea { resize: vertical; min-height: 90px; }
+  .btn-primary {
+    width: 100%; background: var(--red); color: #fff; border: none;
+    border-radius: 8px; padding: 13px 0; font-size: 15px;
+    font-family: 'Playfair Display', serif; cursor: pointer; letter-spacing: 0.3px;
+  }
+  .btn-primary:hover { background: #a80d33; }
+  .btn-primary:disabled { background: #eee; color: #aaa; cursor: default; }
+
+  /* ADMIN */
+  .admin-listing { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 13px; }
+  .admin-listing .al-title { font-weight: 600; margin-bottom: 2px; }
+  .admin-listing .al-sub { color: #666; margin-bottom: 6px; }
+  .admin-actions { display: flex; gap: 8px; }
+  .btn-verify { background: #f5f5f5; border: 1px solid #ddd; border-radius: 5px; padding: 3px 10px; cursor: pointer; font-size: 12px; font-family: 'DM Sans', sans-serif; }
+  .btn-verify.active { background: #fffbea; border-color: var(--gold); color: #9a7200; }
+  .btn-delete { background: #fff0f0; border: 1px solid #ffcdd2; border-radius: 5px; padding: 3px 10px; cursor: pointer; font-size: 12px; color: var(--red); font-family: 'DM Sans', sans-serif; }
+
+  .loading { text-align: center; padding: 60px 0; color: var(--muted); font-size: 16px; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-logo" id="logo">⚾</div>
+  <h1>Atlanta Braves Tickets</h1>
+  <p>2026 season — fan-to-fan marketplace</p>
+  <div class="hero-badge"><span>✦ Chop Shop Fan Exchange</span></div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-inner">
+    <div class="nav-tab">Regular Season</div>
+    <a class="nav-link" href="https://mktg.mlbstatic.com/braves/documents/y2026/2026_atl_schedule_full_season_plan.pdf" target="_blank">Full Schedule ↗</a>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="gameList">
+  <div class="loading">⏳ Loading games...</div>
+</div>
+
+<!-- SELL MODAL -->
+<div class="modal-overlay" id="sellModal" style="display:none">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeSell()">✕</button>
+    <div class="modal-title">List Tickets</div>
+    <div class="modal-sub" id="sellGameLabel"></div>
+    <div class="form-grid">
+      <div><div class="field-label">Section *</div><input class="field-input" id="f-section" placeholder="e.g. 114"></div>
+      <div><div class="field-label">Row</div><input class="field-input" id="f-row" placeholder="e.g. 5"></div>
+      <div><div class="field-label">Seat(s)</div><input class="field-input" id="f-seat" placeholder="e.g. 12-13"></div>
+      <div><div class="field-label"># Tickets</div><input class="field-input" id="f-qty" value="2"></div>
+      <div><div class="field-label">Price/Ticket ($) *</div><input class="field-input" id="f-price" placeholder="e.g. 75"></div>
+      <div><div class="field-label">Your Email *</div><input class="field-input" id="f-email" placeholder="you@email.com"></div>
+    </div>
+    <button class="btn-primary" id="submitBtn" onclick="submitListing()">Post Listing</button>
+  </div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div class="modal-overlay" id="contactModal" style="display:none">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeContact()">✕</button>
+    <div class="modal-title">Contact Seller</div>
+    <div class="modal-sub" id="contactLabel"></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><div class="field-label">Your Name</div><input class="field-input" id="c-name" placeholder="Your name"></div>
+      <div><div class="field-label">Your Email</div><input class="field-input" id="c-email" placeholder="you@email.com"></div>
+      <div><div class="field-label">Message</div><textarea class="field-input field-textarea" id="c-msg"></textarea></div>
+      <button class="btn-primary" onclick="sendContact()">Send via Email →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="adminModal" style="display:none">
+  <div class="modal-box" style="max-width:600px">
+    <button class="modal-close" onclick="document.getElementById('adminModal').style.display='none'">✕</button>
+    <div class="modal-title">🔐 Admin Panel</div>
+    <div id="adminList" style="max-height:420px;overflow-y:auto;margin-top:16px"></div>
+  </div>
+</div>
+
+<script>
+const WORKER = "https://dugout-seat-worker.danstaubb.workers.dev";
+
+const GAMES = [
+  { id:1,   date:"Mar 26", day:"Thu", time:"7:15pm", opponent:"Kansas City Royals",    home:true,  promo:"Opening Day" },
+  { id:2,   date:"Mar 28", day:"Sat", time:"TBD",    opponent:"Kansas City Royals",    home:true,  promo:null },
+  { id:3,   date:"Mar 29", day:"Sun", time:"TBD",    opponent:"Kansas City Royals",    home:true,  promo:null },
+  { id:4,   date:"Mar 30", day:"Mon", time:"TBD",    opponent:"Athletics",             home:true,  promo:null },
+  { id:5,   date:"Mar 31", day:"Tue", time:"TBD",    opponent:"Athletics",             home:true,  promo:null },
+  { id:6,   date:"Apr 1",  day:"Wed", time:"TBD",    opponent:"Athletics",             home:true,  promo:null },
+  { id:7,   date:"Apr 2",  day:"Thu", time:"TBD",    opponent:"Arizona Diamondbacks",  home:false, promo:null },
+  { id:8,   date:"Apr 3",  day:"Fri", time:"TBD",    opponent:"Arizona Diamondbacks",  home:false, promo:null },
+  { id:9,   date:"Apr 4",  day:"Sat", time:"TBD",    opponent:"Arizona Diamondbacks",  home:false, promo:null },
+  { id:10,  date:"Apr 5",  day:"Sun", time:"TBD",    opponent:"Arizona Diamondbacks",  home:false, promo:null },
+  { id:11,  date:"Apr 6",  day:"Mon", time:"TBD",    opponent:"Los Angeles Angels",    home:false, promo:null },
+  { id:12,  date:"Apr 7",  day:"Tue", time:"TBD",    opponent:"Los Angeles Angels",    home:false, promo:null },
+  { id:13,  date:"Apr 8",  day:"Wed", time:"4:07pm", opponent:"Los Angeles Angels",    home:false, promo:null },
+  { id:14,  date:"Apr 10", day:"Fri", time:"TBD",    opponent:"Cleveland Guardians",   home:true,  promo:null },
+  { id:15,  date:"Apr 11", day:"Sat", time:"TBD",    opponent:"Cleveland Guardians",   home:true,  promo:null },
+  { id:16,  date:"Apr 12", day:"Sun", time:"TBD",    opponent:"Cleveland Guardians",   home:true,  promo:null },
+  { id:17,  date:"Apr 13", day:"Mon", time:"TBD",    opponent:"Miami Marlins",         home:true,  promo:null },
+  { id:18,  date:"Apr 14", day:"Tue", time:"TBD",    opponent:"Miami Marlins",         home:true,  promo:null },
+  { id:19,  date:"Apr 15", day:"Wed", time:"TBD",    opponent:"Miami Marlins",         home:true,  promo:null },
+  { id:20,  date:"Apr 17", day:"Fri", time:"6:40pm", opponent:"Philadelphia Phillies", home:false, promo:null },
+  { id:21,  date:"Apr 18", day:"Sat", time:"7:15pm", opponent:"Philadelphia Phillies", home:false, promo:null },
+  { id:22,  date:"Apr 19", day:"Sun", time:"1:35pm", opponent:"Philadelphia Phillies", home:false, promo:null },
+  { id:23,  date:"Apr 20", day:"Mon", time:"TBD",    opponent:"Washington Nationals",  home:false, promo:null },
+  { id:24,  date:"Apr 21", day:"Tue", time:"TBD",    opponent:"Washington Nationals",  home:false, promo:null },
+  { id:25,  date:"Apr 22", day:"Wed", time:"TBD",    opponent:"Washington Nationals",  home:false, promo:null },
+  { id:26,  date:"Apr 23", day:"Thu", time:"TBD",    opponent:"Washington Nationals",  home:false, promo:null },
+  { id:27,  date:"Apr 24", day:"Fri", time:"TBD",    opponent:"Philadelphia Phillies", home:true,  promo:null },
+  { id:28,  date:"Apr 25", day:"Sat", time:"TBD",    opponent:"Philadelphia Phillies", home:true,  promo:null },
+  { id:29,  date:"Apr 26", day:"Sun", time:"TBD",    opponent:"Philadelphia Phillies", home:true,  promo:null },
+  { id:30,  date:"Apr 28", day:"Tue", time:"TBD",    opponent:"Detroit Tigers",        home:true,  promo:null },
+  { id:31,  date:"Apr 29", day:"Wed", time:"TBD",    opponent:"Detroit Tigers",        home:true,  promo:null },
+  { id:32,  date:"Apr 30", day:"Thu", time:"TBD",    opponent:"Detroit Tigers",        home:true,  promo:null },
+  { id:33,  date:"May 1",  day:"Fri", time:"8:40pm", opponent:"Colorado Rockies",      home:false, promo:null },
+  { id:34,  date:"May 2",  day:"Sat", time:"8:10pm", opponent:"Colorado Rockies",      home:false, promo:null },
+  { id:35,  date:"May 3",  day:"Sun", time:"3:10pm", opponent:"Colorado Rockies",      home:false, promo:null },
+  { id:36,  date:"May 4",  day:"Mon", time:"9:40pm", opponent:"Seattle Mariners",      home:false, promo:null },
+  { id:37,  date:"May 5",  day:"Tue", time:"9:40pm", opponent:"Seattle Mariners",      home:false, promo:null },
+  { id:38,  date:"May 6",  day:"Wed", time:"4:10pm", opponent:"Seattle Mariners",      home:false, promo:null },
+  { id:39,  date:"May 8",  day:"Fri", time:"TBD",    opponent:"Los Angeles Dodgers",   home:false, promo:null },
+  { id:40,  date:"May 9",  day:"Sat", time:"TBD",    opponent:"Los Angeles Dodgers",   home:false, promo:null },
+  { id:41,  date:"May 10", day:"Sun", time:"TBD",    opponent:"Los Angeles Dodgers",   home:false, promo:null },
+  { id:42,  date:"May 12", day:"Tue", time:"TBD",    opponent:"Chicago Cubs",          home:true,  promo:null },
+  { id:43,  date:"May 13", day:"Wed", time:"TBD",    opponent:"Chicago Cubs",          home:true,  promo:null },
+  { id:44,  date:"May 14", day:"Thu", time:"TBD",    opponent:"Chicago Cubs",          home:true,  promo:null },
+  { id:45,  date:"May 15", day:"Fri", time:"TBD",    opponent:"Boston Red Sox",        home:true,  promo:null },
+  { id:46,  date:"May 16", day:"Sat", time:"TBD",    opponent:"Boston Red Sox",        home:true,  promo:null },
+  { id:47,  date:"May 17", day:"Sun", time:"TBD",    opponent:"Boston Red Sox",        home:true,  promo:null },
+  { id:48,  date:"May 18", day:"Mon", time:"6:40pm", opponent:"Miami Marlins",         home:false, promo:null },
+  { id:49,  date:"May 19", day:"Tue", time:"4:10pm", opponent:"Miami Marlins",         home:false, promo:null },
+  { id:50,  date:"May 20", day:"Wed", time:"6:40pm", opponent:"Miami Marlins",         home:false, promo:null },
+  { id:51,  date:"May 21", day:"Thu", time:"6:40pm", opponent:"Miami Marlins",         home:false, promo:null },
+  { id:52,  date:"May 22", day:"Fri", time:"TBD",    opponent:"Washington Nationals",  home:true,  promo:null },
+  { id:53,  date:"May 23", day:"Sat", time:"TBD",    opponent:"Washington Nationals",  home:true,  promo:null },
+  { id:54,  date:"May 24", day:"Sun", time:"TBD",    opponent:"Washington Nationals",  home:true,  promo:null },
+  { id:55,  date:"May 26", day:"Tue", time:"TBD",    opponent:"Boston Red Sox",        home:false, promo:null },
+  { id:56,  date:"May 27", day:"Wed", time:"TBD",    opponent:"Boston Red Sox",        home:false, promo:null },
+  { id:57,  date:"May 28", day:"Thu", time:"TBD",    opponent:"Boston Red Sox",        home:false, promo:null },
+  { id:58,  date:"May 29", day:"Fri", time:"TBD",    opponent:"Cincinnati Reds",       home:false, promo:null },
+  { id:59,  date:"May 30", day:"Sat", time:"TBD",    opponent:"Cincinnati Reds",       home:false, promo:null },
+  { id:60,  date:"May 31", day:"Sun", time:"TBD",    opponent:"Cincinnati Reds",       home:false, promo:null },
+  { id:61,  date:"Jun 2",  day:"Tue", time:"TBD",    opponent:"Toronto Blue Jays",     home:true,  promo:null },
+  { id:62,  date:"Jun 3",  day:"Wed", time:"TBD",    opponent:"Toronto Blue Jays",     home:true,  promo:null },
+  { id:63,  date:"Jun 4",  day:"Thu", time:"TBD",    opponent:"Toronto Blue Jays",     home:true,  promo:null },
+  { id:64,  date:"Jun 5",  day:"Fri", time:"TBD",    opponent:"Pittsburgh Pirates",    home:true,  promo:null },
+  { id:65,  date:"Jun 6",  day:"Sat", time:"TBD",    opponent:"Pittsburgh Pirates",    home:true,  promo:null },
+  { id:66,  date:"Jun 7",  day:"Sun", time:"TBD",    opponent:"Pittsburgh Pirates",    home:true,  promo:null },
+  { id:67,  date:"Jun 9",  day:"Tue", time:"TBD",    opponent:"Chicago White Sox",     home:false, promo:null },
+  { id:68,  date:"Jun 10", day:"Wed", time:"TBD",    opponent:"Chicago White Sox",     home:false, promo:null },
+  { id:69,  date:"Jun 11", day:"Thu", time:"TBD",    opponent:"Chicago White Sox",     home:false, promo:null },
+  { id:70,  date:"Jun 12", day:"Fri", time:"TBD",    opponent:"New York Mets",         home:false, promo:null },
+  { id:71,  date:"Jun 13", day:"Sat", time:"TBD",    opponent:"New York Mets",         home:false, promo:null },
+  { id:72,  date:"Jun 14", day:"Sun", time:"TBD",    opponent:"New York Mets",         home:false, promo:null },
+  { id:73,  date:"Jun 16", day:"Tue", time:"TBD",    opponent:"San Francisco Giants",  home:true,  promo:null },
+  { id:74,  date:"Jun 17", day:"Wed", time:"TBD",    opponent:"San Francisco Giants",  home:true,  promo:null },
+  { id:75,  date:"Jun 18", day:"Thu", time:"TBD",    opponent:"San Francisco Giants",  home:true,  promo:null },
+  { id:76,  date:"Jun 19", day:"Fri", time:"TBD",    opponent:"Milwaukee Brewers",     home:true,  promo:null },
+  { id:77,  date:"Jun 20", day:"Sat", time:"TBD",    opponent:"Milwaukee Brewers",     home:true,  promo:null },
+  { id:78,  date:"Jun 21", day:"Sun", time:"TBD",    opponent:"Milwaukee Brewers",     home:true,  promo:null },
+  { id:79,  date:"Jun 22", day:"Mon", time:"TBD",    opponent:"San Diego Padres",      home:false, promo:null },
+  { id:80,  date:"Jun 23", day:"Tue", time:"TBD",    opponent:"San Diego Padres",      home:false, promo:null },
+  { id:81,  date:"Jun 24", day:"Wed", time:"TBD",    opponent:"San Diego Padres",      home:false, promo:null },
+  { id:82,  date:"Jun 26", day:"Fri", time:"TBD",    opponent:"San Francisco Giants",  home:false, promo:null },
+  { id:83,  date:"Jun 27", day:"Sat", time:"TBD",    opponent:"San Francisco Giants",  home:false, promo:null },
+  { id:84,  date:"Jun 28", day:"Sun", time:"TBD",    opponent:"San Francisco Giants",  home:false, promo:null },
+  { id:85,  date:"Jun 30", day:"Tue", time:"TBD",    opponent:"St. Louis Cardinals",   home:true,  promo:null },
+  { id:86,  date:"Jul 1",  day:"Wed", time:"TBD",    opponent:"St. Louis Cardinals",   home:true,  promo:null },
+  { id:87,  date:"Jul 2",  day:"Thu", time:"TBD",    opponent:"St. Louis Cardinals",   home:true,  promo:null },
+  { id:88,  date:"Jul 3",  day:"Fri", time:"TBD",    opponent:"New York Mets",         home:true,  promo:null },
+  { id:89,  date:"Jul 4",  day:"Sat", time:"TBD",    opponent:"New York Mets",         home:true,  promo:"4th of July" },
+  { id:90,  date:"Jul 5",  day:"Sun", time:"TBD",    opponent:"New York Mets",         home:true,  promo:null },
+  { id:91,  date:"Jul 6",  day:"Mon", time:"TBD",    opponent:"New York Mets",         home:true,  promo:null },
+  { id:92,  date:"Jul 7",  day:"Tue", time:"TBD",    opponent:"Pittsburgh Pirates",    home:false, promo:null },
+  { id:93,  date:"Jul 8",  day:"Wed", time:"TBD",    opponent:"Pittsburgh Pirates",    home:false, promo:null },
+  { id:94,  date:"Jul 9",  day:"Thu", time:"TBD",    opponent:"Pittsburgh Pirates",    home:false, promo:null },
+  { id:95,  date:"Jul 10", day:"Fri", time:"TBD",    opponent:"St. Louis Cardinals",   home:false, promo:null },
+  { id:96,  date:"Jul 11", day:"Sat", time:"TBD",    opponent:"St. Louis Cardinals",   home:false, promo:null },
+  { id:97,  date:"Jul 12", day:"Sun", time:"TBD",    opponent:"St. Louis Cardinals",   home:false, promo:null },
+  { id:98,  date:"Jul 17", day:"Fri", time:"7:15pm", opponent:"Texas Rangers",         home:true,  promo:null },
+  { id:99,  date:"Jul 18", day:"Sat", time:"4:10pm", opponent:"Texas Rangers",         home:true,  promo:null },
+  { id:100, date:"Jul 19", day:"Sun", time:"1:35pm", opponent:"Texas Rangers",         home:true,  promo:null },
+  { id:101, date:"Jul 20", day:"Mon", time:"7:15pm", opponent:"San Diego Padres",      home:true,  promo:null },
+  { id:102, date:"Jul 21", day:"Tue", time:"7:15pm", opponent:"San Diego Padres",      home:true,  promo:null },
+  { id:103, date:"Jul 22", day:"Wed", time:"7:15pm", opponent:"San Diego Padres",      home:true,  promo:null },
+  { id:104, date:"Jul 23", day:"Thu", time:"12:15pm",opponent:"San Diego Padres",      home:true,  promo:null },
+  { id:105, date:"Jul 24", day:"Fri", time:"7:05pm", opponent:"Baltimore Orioles",     home:false, promo:null },
+  { id:106, date:"Jul 25", day:"Sat", time:"7:05pm", opponent:"Baltimore Orioles",     home:false, promo:null },
+  { id:107, date:"Jul 26", day:"Sun", time:"1:35pm", opponent:"Baltimore Orioles",     home:false, promo:null },
+  { id:108, date:"Jul 27", day:"Mon", time:"7:10pm", opponent:"New York Mets",         home:false, promo:null },
+  { id:109, date:"Jul 28", day:"Tue", time:"7:10pm", opponent:"New York Mets",         home:false, promo:null },
+  { id:110, date:"Jul 29", day:"Wed", time:"1:10pm", opponent:"New York Mets",         home:false, promo:null },
+  { id:111, date:"Jul 30", day:"Thu", time:"7:15pm", opponent:"Washington Nationals",  home:true,  promo:null },
+  { id:112, date:"Jul 31", day:"Fri", time:"7:15pm", opponent:"Washington Nationals",  home:true,  promo:null },
+  { id:113, date:"Aug 1",  day:"Sat", time:"7:15pm", opponent:"Washington Nationals",  home:true,  promo:null },
+  { id:114, date:"Aug 2",  day:"Sun", time:"1:35pm", opponent:"Washington Nationals",  home:true,  promo:null },
+  { id:115, date:"Aug 4",  day:"Tue", time:"7:15pm", opponent:"Miami Marlins",         home:true,  promo:null },
+  { id:116, date:"Aug 5",  day:"Wed", time:"7:15pm", opponent:"Miami Marlins",         home:true,  promo:null },
+  { id:117, date:"Aug 6",  day:"Thu", time:"7:15pm", opponent:"Miami Marlins",         home:true,  promo:null },
+  { id:118, date:"Aug 7",  day:"Fri", time:"7:05pm", opponent:"New York Yankees",      home:false, promo:null },
+  { id:119, date:"Aug 8",  day:"Sat", time:"3:05pm", opponent:"New York Yankees",      home:false, promo:null },
+  { id:120, date:"Aug 9",  day:"Sun", time:"1:35pm", opponent:"New York Yankees",      home:false, promo:null },
+  { id:121, date:"Aug 10", day:"Mon", time:"7:15pm", opponent:"New York Mets",         home:true,  promo:null },
+  { id:122, date:"Aug 11", day:"Tue", time:"7:15pm", opponent:"New York Mets",         home:true,  promo:null },
+  { id:123, date:"Aug 12", day:"Wed", time:"7:15pm", opponent:"New York Mets",         home:true,  promo:null },
+  { id:124, date:"Aug 14", day:"Fri", time:"7:15pm", opponent:"Arizona Diamondbacks",  home:true,  promo:null },
+  { id:125, date:"Aug 15", day:"Sat", time:"7:15pm", opponent:"Arizona Diamondbacks",  home:true,  promo:null },
+  { id:126, date:"Aug 16", day:"Sun", time:"1:35pm", opponent:"Arizona Diamondbacks",  home:true,  promo:null },
+  { id:127, date:"Aug 17", day:"Mon", time:"7:40pm", opponent:"Minnesota Twins",       home:false, promo:null },
+  { id:128, date:"Aug 18", day:"Tue", time:"7:40pm", opponent:"Minnesota Twins",       home:false, promo:null },
+  { id:129, date:"Aug 19", day:"Wed", time:"1:40pm", opponent:"Minnesota Twins",       home:false, promo:null },
+  { id:130, date:"Aug 21", day:"Fri", time:"4:10pm", opponent:"Milwaukee Brewers",     home:false, promo:null },
+  { id:131, date:"Aug 22", day:"Sat", time:"2:10pm", opponent:"Milwaukee Brewers",     home:false, promo:null },
+  { id:132, date:"Aug 23", day:"Sun", time:"7:10pm", opponent:"Milwaukee Brewers",     home:false, promo:null },
+  { id:133, date:"Aug 25", day:"Tue", time:"7:15pm", opponent:"Los Angeles Dodgers",   home:true,  promo:null },
+  { id:134, date:"Aug 26", day:"Wed", time:"7:15pm", opponent:"Los Angeles Dodgers",   home:true,  promo:null },
+  { id:135, date:"Aug 27", day:"Thu", time:"7:15pm", opponent:"Los Angeles Dodgers",   home:true,  promo:null },
+  { id:136, date:"Aug 28", day:"Fri", time:"7:15pm", opponent:"Colorado Rockies",      home:true,  promo:null },
+  { id:137, date:"Aug 29", day:"Sat", time:"4:10pm", opponent:"Colorado Rockies",      home:true,  promo:null },
+  { id:138, date:"Aug 30", day:"Sun", time:"1:35pm", opponent:"Colorado Rockies",      home:true,  promo:null },
+  { id:139, date:"Sep 1",  day:"Tue", time:"6:45pm", opponent:"Washington Nationals",  home:false, promo:null },
+  { id:140, date:"Sep 2",  day:"Wed", time:"1:05pm", opponent:"Washington Nationals",  home:false, promo:null },
+  { id:141, date:"Sep 4",  day:"Fri", time:"TBD",    opponent:"Philadelphia Phillies", home:false, promo:null },
+  { id:142, date:"Sep 5",  day:"Sat", time:"TBD",    opponent:"Philadelphia Phillies", home:false, promo:null },
+  { id:143, date:"Sep 6",  day:"Sun", time:"TBD",    opponent:"Philadelphia Phillies", home:false, promo:null },
+  { id:144, date:"Sep 7",  day:"Mon", time:"TBD",    opponent:"Philadelphia Phillies", home:false, promo:null },
+  { id:145, date:"Sep 8",  day:"Tue", time:"TBD",    opponent:"Tampa Bay Rays",        home:true,  promo:null },
+  { id:146, date:"Sep 9",  day:"Wed", time:"TBD",    opponent:"Tampa Bay Rays",        home:true,  promo:null },
+  { id:147, date:"Sep 10", day:"Thu", time:"TBD",    opponent:"Tampa Bay Rays",        home:true,  promo:null },
+  { id:148, date:"Sep 11", day:"Fri", time:"TBD",    opponent:"Philadelphia Phillies", home:true,  promo:null },
+  { id:149, date:"Sep 12", day:"Sat", time:"TBD",    opponent:"Philadelphia Phillies", home:true,  promo:null },
+  { id:150, date:"Sep 13", day:"Sun", time:"TBD",    opponent:"Philadelphia Phillies", home:true,  promo:null },
+  { id:151, date:"Sep 14", day:"Mon", time:"TBD",    opponent:"Chicago Cubs",          home:false, promo:null },
+  { id:152, date:"Sep 15", day:"Tue", time:"TBD",    opponent:"Chicago Cubs",          home:false, promo:null },
+  { id:153, date:"Sep 16", day:"Wed", time:"TBD",    opponent:"Chicago Cubs",          home:false, promo:null },
+  { id:154, date:"Sep 18", day:"Fri", time:"TBD",    opponent:"Houston Astros",        home:false, promo:null },
+  { id:155, date:"Sep 19", day:"Sat", time:"TBD",    opponent:"Houston Astros",        home:false, promo:null },
+  { id:156, date:"Sep 20", day:"Sun", time:"TBD",    opponent:"Houston Astros",        home:false, promo:null },
+  { id:157, date:"Sep 22", day:"Tue", time:"TBD",    opponent:"Cincinnati Reds",       home:true,  promo:null },
+  { id:158, date:"Sep 23", day:"Wed", time:"TBD",    opponent:"Cincinnati Reds",       home:true,  promo:null },
+  { id:159, date:"Sep 24", day:"Thu", time:"TBD",    opponent:"Cincinnati Reds",       home:true,  promo:null },
+  { id:160, date:"Sep 25", day:"Fri", time:"TBD",    opponent:"Miami Marlins",         home:false, promo:null },
+  { id:161, date:"Sep 26", day:"Sat", time:"TBD",    opponent:"Miami Marlins",         home:false, promo:null },
+  { id:162, date:"Sep 27", day:"Sun", time:"TBD",    opponent:"Miami Marlins",         home:false, promo:null },
+];
+
+const MONTH_LABELS = { Mar:"March 2026", Apr:"April 2026", May:"May 2026", Jun:"June 2026", Jul:"July 2026", Aug:"August 2026", Sep:"September 2026" };
+
+let listings = [];
+let openGameId = null;
+let sellGameId = null;
+let contactListing = null;
+let logoClicks = 0;
+
+// Admin secret: click logo 5x
+document.getElementById('logo').addEventListener('click', () => {
+  logoClicks++;
+  if (logoClicks >= 5) { logoClicks = 0; openAdmin(); }
+});
+
+async function loadListings() {
+  try {
+    const res = await fetch(`${WORKER}?pageSize=100`);
+    const data = await res.json();
+    listings = (data.records || []).map(r => ({
+      airtableId: r.id, id: r.id,
+      game_id: r.fields.game_id,
+      section: r.fields.section || "",
+      row: r.fields.row || "",
+      seat: r.fields.seat || "",
+      quantity: r.fields.quantity || 1,
+      price: r.fields.price || 0,
+      seller: r.fields.seller || "",
+      verified: r.fields.verified || false,
+    }));
+  } catch(e) { listings = []; }
+  render();
+}
+
+function render() {
+  const container = document.getElementById('gameList');
+  const months = {};
+  GAMES.forEach(g => {
+    const key = MONTH_LABELS[g.date.split(' ')[0]];
+    if (!months[key]) months[key] = [];
+    months[key].push(g);
+  });
+
+  let html = '';
+  for (const [month, games] of Object.entries(months)) {
+    html += `<div class="month-block"><h2 class="month-label">${month}</h2>`;
+    for (const game of games) {
+      const gl = listings.filter(l => l.game_id === game.id);
+      const minPrice = gl.length > 0 ? Math.min(...gl.map(l => l.price)) : null;
+      const isOpen = openGameId === game.id;
+      const title = game.home ? `${game.opponent} at Atlanta` : `@ ${game.opponent}`;
+      const priceHtml = minPrice !== null
+        ? `<div class="price-badge">From $${minPrice}</div>`
+        : `<div class="no-listing">No listings</div>`;
+
+      html += `
+        <div class="game-row">
+          <div class="game-header" onclick="toggleGame(${game.id})">
+            <div class="game-date"><div class="d1">${game.date}</div><div class="d2">${game.day} · ${game.time}</div></div>
+            <div class="game-info">
+              <div class="g1">${title}</div>
+              ${game.promo ? `<div class="game-promo">🎁 ${game.promo}</div>` : ''}
+            </div>
+            <div class="game-price">${priceHtml}<span class="chevron ${isOpen ? 'open' : ''}">▾</span></div>
+          </div>`;
+
+      if (isOpen) {
+        html += `<div class="game-expanded">
+          <div class="expanded-header">
+            <span class="listing-count">${gl.length} listing${gl.length !== 1 ? 's' : ''}</span>
+            <button class="btn-sell" onclick="openSell(${game.id})">+ Sell Tickets</button>
+          </div>`;
+
+        if (gl.length === 0) {
+          html += `<p class="no-listings">No listings yet — be the first!</p>`;
+        } else {
+          gl.forEach(l => {
+            html += `
+              <div class="listing-card ${l.verified ? 'verified' : ''}">
+                <div class="listing-info">Sec ${l.section} · Row ${l.row} · ${l.quantity} ticket${l.quantity > 1 ? 's' : ''}${l.verified ? ' ⭐' : ''}</div>
+                <div class="listing-price">$${l.price}</div>
+                <button class="btn-contact" onclick="openContact('${l.id}', ${game.id})">Contact →</button>
+              </div>`;
+          });
+        }
+        html += `</div>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+  container.innerHTML = html;
+}
+
+function toggleGame(id) {
+  openGameId = openGameId === id ? null : id;
+  render();
+}
+
+// SELL
+function openSell(gameId) {
+  sellGameId = gameId;
+  const g = GAMES.find(g => g.id === gameId);
+  document.getElementById('sellGameLabel').textContent = `${g.opponent} · ${g.date} at ${g.time}`;
+  document.getElementById('f-section').value = '';
+  document.getElementById('f-row').value = '';
+  document.getElementById('f-seat').value = '';
+  document.getElementById('f-qty').value = '2';
+  document.getElementById('f-price').value = '';
+  document.getElementById('f-email').value = '';
+  document.getElementById('submitBtn').textContent = 'Post Listing';
+  document.getElementById('sellModal').style.display = 'flex';
+}
+
+function closeSell() {
+  document.getElementById('sellModal').style.display = 'none';
+}
+
+async function submitListing() {
+  const section = document.getElementById('f-section').value.trim();
+  const price   = document.getElementById('f-price').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  if (!section || !price || !email) { alert('Section, price and email are required.'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(WORKER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: [{ fields: {
+        game_id: sellGameId,
+        section,
+        row: document.getElementById('f-row').value.trim(),
+        seat: document.getElementById('f-seat').value.trim(),
+        quantity: Number(document.getElementById('f-qty').value) || 1,
+        price: Number(price),
+        seller: email,
+        verified: false,
+      }}]})
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error.message); }
+    else {
+      const r = data.records[0];
+      listings.push({ airtableId: r.id, id: r.id, ...r.fields, verified: false });
+      closeSell();
+      render();
+    }
+  } catch(e) {
+    alert('Failed to save: ' + e.message);
+  }
+
+  btn.textContent = 'Post Listing';
+  btn.disabled = false;
+}
+
+// CONTACT
+function openContact(listingId, gameId) {
+  const l = listings.find(l => l.id === listingId);
+  const g = GAMES.find(g => g.id === gameId);
+  contactListing = { listing: l, game: g };
+  document.getElementById('contactLabel').textContent = `${g.opponent} · ${g.date} · Sec ${l.section} · $${l.price}/ea`;
+  document.getElementById('c-name').value = '';
+  document.getElementById('c-email').value = '';
+  document.getElementById('c-msg').value = `Hi! I'm interested in your ${l.quantity} ticket(s) for ${g.opponent} on ${g.date}. Section ${l.section}, Row ${l.row} at $${l.price}/ticket — still available?`;
+  document.getElementById('contactModal').style.display = 'flex';
+}
+
+function closeContact() {
+  document.getElementById('contactModal').style.display = 'none';
+}
+
+function sendContact() {
+  const name  = document.getElementById('c-name').value;
+  const email = document.getElementById('c-email').value;
+  const msg   = document.getElementById('c-msg').value;
+  if (!name || !email) { alert('Please enter your name and email.'); return; }
+  const { listing, game } = contactListing;
+  window.location.href = `mailto:${listing.seller}?subject=${encodeURIComponent(`Braves Tickets - ${game.opponent} ${game.date}`)}&body=${encodeURIComponent(`From: ${name} (${email})\n\n${msg}`)}`;
+  closeContact();
+}
+
+// ADMIN
+async function openAdmin() {
+  const list = document.getElementById('adminList');
+  list.innerHTML = listings.length === 0 ? '<p style="color:#bbb">No listings.</p>' : listings.map(l => {
+    const g = GAMES.find(g => g.id === l.game_id);
+    return `<div class="admin-listing">
+      <div class="al-title">${g?.opponent} · ${g?.date}</div>
+      <div class="al-sub">Sec ${l.section} · Row ${l.row} · ${l.quantity} tix · $${l.price} · ${l.seller}</div>
+      <div class="admin-actions">
+        <button class="btn-verify ${l.verified ? 'active' : ''}" onclick="toggleVerified('${l.id}')">${l.verified ? '⭐ Verified' : '☆ Unverified'}</button>
+        <button class="btn-delete" onclick="deleteListing('${l.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('adminModal').style.display = 'flex';
+}
+
+async function toggleVerified(id) {
+  const l = listings.find(l => l.id === id);
+  const newVal = !l.verified;
+  l.verified = newVal;
+  await fetch(`${WORKER}/${l.airtableId}`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: { verified: newVal } })
+  });
+  render();
+  openAdmin();
+}
+
+async function deleteListing(id) {
+  if (!confirm('Delete this listing?')) return;
+  const l = listings.find(l => l.id === id);
+  listings = listings.filter(x => x.id !== id);
+  await fetch(`${WORKER}/${l.airtableId}`, { method: 'DELETE' });
+  render();
+  openAdmin();
+}
+
+// Close modals on overlay click
+document.getElementById('sellModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSell(); });
+document.getElementById('contactModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeContact(); });
+document.getElementById('adminModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.style.display='none'; });
+
+loadListings();
+</script>
+</body>
+</html>
