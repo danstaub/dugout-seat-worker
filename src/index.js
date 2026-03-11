@@ -1,5 +1,5 @@
 const AIRTABLE_TOKEN = "patlAauiW2jmY3UPU.84e368d94c42c1f56c61fa54284bd3f0907637a23703d581e95f24ec15609e7c";
-const AIRTABLE_BASE = "appcZ5uGCJSMKvW5w";
+const AIRTABLE_BASE = "https://api.airtable.com/v0/appgEacIYT6IJyCuZ/Dugout%20Backend";
 
 export default {
   async fetch(request) {
