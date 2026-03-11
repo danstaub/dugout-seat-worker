@@ -1,4 +1,4 @@
-const AIRTABLE_TOKEN = "patlAauiW2jmY3UPU.84e368d94c42c1f56c61fa54284bd3f0907637a23703d581e95f24ec15609e7c";
+const AIRTABLE_TOKEN = "pat9AL6u8CtLWETd6.b372f850e8f9283cbb8d7708661fe9eea47ec24d6add44630801cbed1c0bac40";
 const AIRTABLE_BASE = "https://api.airtable.com/v0/appgEacIYT6IJyCuZ/Dugout%20Backend";
 
 export default {
