@@ -161,6 +161,27 @@
   .btn-delete { background: #fff0f0; border: 1px solid #ffcdd2; border-radius: 5px; padding: 3px 10px; cursor: pointer; font-size: 12px; color: var(--red); font-family: 'DM Sans', sans-serif; }
 
   .loading { text-align: center; padding: 60px 0; color: var(--muted); font-size: 16px; }
+
+  /* SUCCESS */
+  .success-box { text-align: center; padding: 10px 0; }
+  .success-icon { font-size: 40px; margin-bottom: 12px; }
+  .success-title { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--navy); margin-bottom: 8px; }
+  .success-sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .delete-link-box {
+    background: #f7f9fc; border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px; margin-bottom: 18px; text-align: left;
+  }
+  .delete-link-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .delete-link-url {
+    font-size: 12px; color: var(--navy); word-break: break-all;
+    font-family: monospace; background: #edf1f9; padding: 8px 10px;
+    border-radius: 5px; display: block; margin-bottom: 8px;
+  }
+  .btn-copy {
+    background: var(--navy); color: #fff; border: none; border-radius: 5px;
+    padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-copy:hover { background: #0d1f3c; }
 </style>
 </head>
 <body>
@@ -215,6 +236,24 @@
       <div><div class="field-label">Your Email</div><input class="field-input" id="c-email" placeholder="you@email.com"></div>
       <div><div class="field-label">Message</div><textarea class="field-input field-textarea" id="c-msg"></textarea></div>
       <button class="btn-primary" onclick="sendContact()">Send via Email →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="successModal" style="display:none">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('successModal').style.display='none'">✕</button>
+    <div class="success-box">
+      <div class="success-icon">⚾</div>
+      <div class="success-title">Posting Confirmed!</div>
+      <div class="success-sub">A confirmation email is on its way with everything you need. To remove your listing anytime, use the link below.</div>
+      <div class="delete-link-box">
+        <div class="delete-link-label">Your delete link</div>
+        <span class="delete-link-url" id="deleteLinkUrl"></span>
+        <button class="btn-copy" onclick="copyDeleteLink()">Copy Link</button>
+      </div>
+      <button class="btn-primary" onclick="document.getElementById('successModal').style.display='none'">Done</button>
     </div>
   </div>
 </div>
@@ -398,8 +437,20 @@ const GAMES = [
 
 const MONTH_LABELS = { Mar:"March 2026", Apr:"April 2026", May:"May 2026", Jun:"June 2026", Jul:"July 2026", Aug:"August 2026", Sep:"September 2026" };
 
-let listings = [];
-let openGameId = null;
+let deleteRecordId = null;
+
+// Handle ?delete=RECORD_ID on page load
+const urlParams = new URLSearchParams(window.location.search);
+const deleteId = urlParams.get('delete');
+if (deleteId) {
+  if (confirm('Delete your listing? This cannot be undone.')) {
+    fetch(`${WORKER}/${deleteId}`, { method: 'DELETE' })
+      .then(() => { alert('Your listing has been removed. ✓'); window.history.replaceState({}, '', window.location.pathname); })
+      .catch(() => alert('Something went wrong. Try again.'));
+  } else {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
 let sellGameId = null;
 let contactListing = null;
 let logoClicks = 0;
@@ -545,6 +596,10 @@ async function submitListing() {
       listings.push({ airtableId: r.id, id: r.id, ...r.fields, verified: false });
       closeSell();
       render();
+      // Show success modal with delete link
+      const deleteUrl = `${window.location.origin}${window.location.pathname}?delete=${r.id}`;
+      document.getElementById('deleteLinkUrl').textContent = deleteUrl;
+      document.getElementById('successModal').style.display = 'flex';
     }
   } catch(e) {
     alert('Failed to save: ' + e.message);
@@ -552,6 +607,15 @@ async function submitListing() {
 
   btn.textContent = 'Post Listing';
   btn.disabled = false;
+}
+
+function copyDeleteLink() {
+  const url = document.getElementById('deleteLinkUrl').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Link', 2000);
+  });
 }
 
 // CONTACT
@@ -622,6 +686,7 @@ async function deleteListing(id) {
 document.getElementById('sellModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSell(); });
 document.getElementById('contactModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeContact(); });
 document.getElementById('adminModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.style.display='none'; });
+document.getElementById('successModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.style.display='none'; });
 
 loadListings();
 </script>
