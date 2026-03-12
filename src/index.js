@@ -31,23 +31,19 @@ export default {
       },
     };
 
-    let body = null;
     if (["POST", "PATCH"].includes(request.method)) {
-      body = await request.text();
-      init.body = body;
+      init.body = await request.text();
     }
 
     const airtableRes = await fetch(finalUrl, init);
     const data = await airtableRes.json();
 
-    // Send confirmation email after successful POST
-    if (request.method === "POST" && airtableRes.ok && data.records?.[0]) {
+    if (request.method === "POST" && airtableRes.ok && data.records && data.records[0]) {
       const record = data.records[0];
-      const sellerEmail = record.fields?.seller;
-      const recordAirtableId = record.id;
-
+      const sellerEmail = record.fields && record.fields.seller;
+      const recordId = record.id;
       if (sellerEmail) {
-        const deleteLink = `${SITE_URL}/?delete=${recordAirtableId}`;
+        const deleteLink = SITE_URL + "/?delete=" + recordId;
         await sendConfirmationEmail(sellerEmail, deleteLink);
       }
     }
@@ -63,17 +59,38 @@ export default {
 };
 
 async function sendConfirmationEmail(toEmail, deleteLink) {
-  const html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;background:#f7f8fa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f8fa;padding:40px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-        <tr><td style="background:linear-gradient(160deg,#0a1628 0%,#13274F 100%);padding:32px 40px;text-align:center;">
-          <div style="font-size:36px;margin-bottom:8px;">⚾</div>
-          <div style="font-family:Georgia,serif;font-size:22px;color:#ffffff;font-weight:700;">Chop Shop Fan Exchange</div>
-          <div style="font-size:13px;color:#8faab8;margin-top:4px;">Atlanta Braves Ticket Marketplace</div>
-        </td></tr>
-        <tr><td style="padding:36px 40px;">
-          <p style="font-size:18px;font-weight:700;color:#13274F;margin:0 0 16px;font-family:Georgia,serif;">Congrats on your Dugout Seat listing!</p>
-          <p style="font-size:15px;color:#444;line-height:1.6;margin:0 0 24px;">If anyone is interested in your listing they'll reach out over email.</p>
+  const html = "<html><body style='font-family:Helvetica,Arial,sans-serif;background:#f7f8fa;margin:0;padding:40px 0;'>"
+    + "<table width='100%' cellpadding='0' cellspacing='0'><tr><td align='center'>"
+    + "<table width='560' cellpadding='0' cellspacing='0' style='background:#fff;border-radius:12px;overflow:hidden;'>"
+    + "<tr><td style='background:#13274F;padding:32px 40px;text-align:center;'>"
+    + "<div style='font-size:32px;margin-bottom:8px;'>&#9918;</div>"
+    + "<div style='font-family:Georgia,serif;font-size:22px;color:#fff;font-weight:700;'>Chop Shop Fan Exchange</div>"
+    + "<div style='font-size:13px;color:#8faab8;margin-top:4px;'>Atlanta Braves Ticket Marketplace</div>"
+    + "</td></tr>"
+    + "<tr><td style='padding:36px 40px;'>"
+    + "<p style='font-size:18px;font-weight:700;color:#13274F;margin:0 0 16px;font-family:Georgia,serif;'>Congrats on your Dugout Seat listing!</p>"
+    + "<p style='font-size:15px;color:#444;line-height:1.6;margin:0 0 24px;'>If anyone is interested in your listing they'll reach out over email.</p>"
+    + "<p style='font-size:15px;color:#444;line-height:1.6;margin:0 0 20px;'>If you'd like to delete your listing you can do that in one click here:</p>"
+    + "<table cellpadding='0' cellspacing='0' style='margin:0 0 28px;'><tr>"
+    + "<td style='background:#CE1141;border-radius:7px;'>"
+    + "<a href='" + deleteLink + "' style='display:inline-block;padding:13px 28px;font-size:14px;font-weight:600;color:#fff;text-decoration:none;'>Remove My Listing &rarr;</a>"
+    + "</td></tr></table>"
+    + "<p style='font-size:14px;color:#888;line-height:1.6;margin:0;'>Feel free to reply to this email if you have any questions.</p>"
+    + "</td></tr>"
+    + "<tr><td style='background:#f7f9fc;border-top:1px solid #e4e9f0;padding:20px 40px;text-align:center;'>"
+    + "<p style='font-size:12px;color:#aaa;margin:0;'>Chop Shop Fan Exchange &middot; danstaub.github.io/dugout-seat-worker</p>"
+    + "</td></tr>"
+    + "</table></td></tr></table></body></html>";
+
+  await fetch("https://emailoctopus.com/api/1.6/transactional/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      api_key: EO_API_KEY,
+      to: [{ email_address: toEmail }],
+      from: { email_address: FROM_EMAIL, name: "Chop Shop" },
+      subject: "Your Braves ticket listing is live! ⚾",
+      content: { html: html },
+    }),
+  });
+}
