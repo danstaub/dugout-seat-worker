@@ -437,6 +437,11 @@ const GAMES = [
 
 const MONTH_LABELS = { Mar:"March 2026", Apr:"April 2026", May:"May 2026", Jun:"June 2026", Jul:"July 2026", Aug:"August 2026", Sep:"September 2026" };
 
+let listings = [];
+let openGameId = null;
+let sellGameId = null;
+let contactListing = null;
+let logoClicks = 0;
 let deleteRecordId = null;
 
 // Handle ?delete=RECORD_ID on page load
