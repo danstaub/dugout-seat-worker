@@ -230,6 +230,7 @@
   <div class="nav-inner">
     <div class="nav-tab">Regular Season</div>
     <a class="nav-link" href="https://mktg.mlbstatic.com/braves/documents/y2026/2026_atl_schedule_full_season_plan.pdf" target="_blank">Full Schedule ↗</a>
+    <a class="nav-link" onclick="document.getElementById('bulkModal').style.display='flex'" style="cursor:pointer;">Add multiple games</a>
     <div class="view-toggle">
       <button class="view-btn active" id="btnCard" onclick="setView('card')" title="Card view">▦</button>
       <button class="view-btn" id="btnList" onclick="setView('list')" title="List view">☰</button>
@@ -290,6 +291,39 @@
       </div>
       <button class="btn-primary" onclick="document.getElementById('successModal').style.display='none'">Done</button>
     </div>
+  </div>
+</div>
+
+<!-- BULK IMPORT MODAL -->
+<div class="modal-overlay" id="bulkModal" style="display:none">
+  <div class="modal-box" style="max-width:500px">
+    <button class="modal-close" onclick="document.getElementById('bulkModal').style.display='none'">✕</button>
+    <div class="modal-title">Bulk Import Listings</div>
+    <div class="modal-sub">Got a lot of tickets to sell? Send us a CSV and we'll upload them for you.</div>
+
+    <div style="background:#f7f9fc;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;">
+      <div class="field-label" style="margin-bottom:8px;">Required CSV format</div>
+      <div style="font-family:monospace;font-size:12px;background:#fff;border:1px solid #ddd;border-radius:5px;padding:10px;overflow-x:auto;white-space:nowrap;color:#333;">
+        game_date,section,row,seat,quantity,price,seller_email<br>
+        Mar 26,114,5,12-13,2,75,you@email.com<br>
+        Apr 10,202,3,8,4,50,you@email.com
+      </div>
+      <button class="btn-copy" style="margin-top:10px;" onclick="downloadTemplate()">⬇ Download Template CSV</button>
+    </div>
+
+    <div style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
+      <strong>Field guide:</strong><br>
+      • <strong>game_date</strong> — use format like <code style="background:#f0f0f0;padding:1px 5px;border-radius:3px;">Mar 26</code> or <code style="background:#f0f0f0;padding:1px 5px;border-radius:3px;">Apr 10</code><br>
+      • <strong>section</strong> — your section number or name<br>
+      • <strong>row</strong> — row letter or number<br>
+      • <strong>seat</strong> — seat number(s), e.g. <code style="background:#f0f0f0;padding:1px 5px;border-radius:3px;">12-13</code> for a pair<br>
+      • <strong>quantity</strong> — number of tickets<br>
+      • <strong>price</strong> — per ticket in dollars, no $ sign<br>
+      • <strong>seller_email</strong> — where buyers will contact you
+    </div>
+
+    <button class="btn-primary" onclick="sendBulkEmail()">📎 Email My CSV to Chop Shop</button>
+    <p style="font-size:11px;color:#aaa;text-align:center;margin-top:10px;">This opens your email app pre-filled. Attach your CSV and hit send.</p>
   </div>
 </div>
 
@@ -709,6 +743,28 @@ async function submitListing() {
   btn.disabled = false;
 }
 
+function downloadTemplate() {
+  const csv = [
+    'game_date,section,row,seat,quantity,price,seller_email',
+    'Mar 26,114,5,12-13,2,75,you@email.com',
+    'Apr 10,202,3,8,4,50,you@email.com',
+    'May 15,318,7,22-23,2,60,you@email.com',
+  ].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'chop-shop-bulk-import-template.csv';
+  a.click();
+}
+
+function sendBulkEmail() {
+  const subject = encodeURIComponent('Chop Shop Bulk Ticket Import');
+  const body = encodeURIComponent(
+    'Hi,\n\nPlease find my bulk ticket listings attached as a CSV file.\n\nThanks!'
+  );
+  window.location.href = `mailto:dan@danstaub.com?subject=${subject}&body=${body}`;
+}
+
 function copyDeleteLink() {
   const url = document.getElementById('deleteLinkUrl').textContent;
   navigator.clipboard.writeText(url).then(() => {
@@ -787,6 +843,7 @@ document.getElementById('sellModal').addEventListener('click', e => { if (e.targ
 document.getElementById('contactModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeContact(); });
 document.getElementById('adminModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.style.display='none'; });
 document.getElementById('successModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.style.display='none'; });
+document.getElementById('bulkModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.style.display='none'; });
 
 loadListings();
 </script>
